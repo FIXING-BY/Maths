@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Açı Ustası - Sonsuz Mod</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&display=swap');
+
+    body { 
+      background: radial-gradient(circle at top right, #1e293b, #0f172a); 
+      color: #f8fafc; 
+      font-family: 'Outfit', sans-serif; 
+      display: flex; justify-content: center; align-items: center; 
+      min-height: 100vh; margin: 0; 
+    }
+
+    .container { 
+      background: rgba(30, 41, 59, 0.7); 
+      backdrop-filter: blur(20px);
+      padding: 40px; border-radius: 30px; 
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; 
+    }
+
+    canvas { 
+      background: #0f172a; border-radius: 50%; 
+      cursor: crosshair; border: 8px solid #1e293b;
+    }
+
+    .panel { width: 300px; text-align: center; display: flex; flex-direction: column; gap: 20px; }
+    #targetDisplay { font-size: 3rem; font-weight: 600; color: #38bdf8; }
+
+    button { 
+      background: linear-gradient(135deg, #6366f1, #4f46e5); 
+      color: white; border: none; padding: 18px; border-radius: 15px; 
+      font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; 
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+
+    #result { padding: 20px; background: rgba(15, 23, 42, 0.5); border-radius: 15px; border: 1px solid #334155; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <canvas id="circleCanvas" width="400" height="400"></canvas>
+  <div class="panel">
+    <h2>Hedef Açı</h2>
+    <div id="targetDisplay">?°</div>
+    <div id="result">Çemberi döndür ve tahminini onayla!</div>
+    <button id="actionBtn">Tahmini Onayla</button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("circleCanvas");
+  const ctx = canvas.getContext("2d");
+  const centerX = 200, centerY = 200, radius = 140;
+  
+  let targetAngle = Math.floor(Math.random() * 360);
+  let displayAngle = 0;
+  let mouseAngle = 0;
+  
+  function getAngle(x, y) {
+    let angle = -Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+    return (angle < 0 ? angle + 360 : angle);
+  }
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseAngle = getAngle(e.clientX - rect.left, e.clientY - rect.top);
+  });
+
+  function draw() {
+    ctx.clearRect(0, 0, 400, 400);
+    
+    // Yumuşak takip
+    let diff = (mouseAngle - displayAngle + 540) % 360 - 180;
+    displayAngle = (displayAngle + diff * 0.15 + 360) % 360;
+
+    // SABİT 0 DERECE ÇİZGİSİ
+    ctx.beginPath();
+    ctx.strokeStyle = "#475569"; 
+    ctx.lineWidth = 4;
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + radius + 20, centerY);
+    ctx.stroke();
+
+    // Dinamik tahmin çizgisi
+    const rad = -displayAngle * Math.PI / 180;
+    ctx.beginPath();
+    ctx.strokeStyle = "#38bdf8"; 
+    ctx.lineWidth = 12; 
+    ctx.lineCap = "round";
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + radius * Math.cos(rad), centerY + radius * Math.sin(rad));
+    ctx.stroke();
+
+    requestAnimationFrame(draw);
+  }
+
+  document.getElementById("actionBtn").addEventListener("click", () => {
+    const diff = Math.round(Math.min(Math.abs(displayAngle - targetAngle), 360 - Math.abs(displayAngle - targetAngle)));
+    document.getElementById("result").innerHTML = `Tahminin: ${Math.round(displayAngle)}°<br>Fark: <strong>${diff}°</strong>`;
+    
+    // Sonsuz döngü: Tur kontrolü yok, sadece yeni hedef atıyoruz
+    targetAngle = Math.floor(Math.random() * 360);
+    document.getElementById("targetDisplay").textContent = targetAngle + "°";
+  });
+
+  document.getElementById("targetDisplay").textContent = targetAngle + "°";
+  draw();
+</script>
+</body>
+</html>
